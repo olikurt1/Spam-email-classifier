@@ -13,6 +13,13 @@ def split_data(df):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
     return X_train, X_test, y_train, y_test
 
+def build_pipeline():
+    #converting text from emails into numerical vectors that the model can read
+    vectoriser = TfidfVectorizer()
+    #creating Naive Bayes model 
+    model = MultinomialNB()
+    pipeline = Pipeline([("vectoriser", vectoriser), ("model", model)])
+    return pipeline
 
 if __name__ == ("__main__"):
     df = load_data(DATA_SET_PATH)
@@ -27,3 +34,13 @@ if __name__ == ("__main__"):
     #ensuring stratification worked
     print(f"{y_train.mean():.1%}")
     print(f"{y_test.mean():.1%}")
+
+    pipeline = build_pipeline()
+    pipeline.fit(X_train, y_train)
+
+    prediction = pipeline.predict(X_test)
+    print("Model Prediction")
+    print(prediction)
+    print("Target")
+    print(y_test)
+    
