@@ -3,6 +3,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
+from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix
 
 def split_data(df):
     #unpacking text column and label number column
@@ -20,6 +21,14 @@ def build_pipeline():
     model = MultinomialNB()
     pipeline = Pipeline([("vectoriser", vectoriser), ("model", model)])
     return pipeline
+
+#function which takes in prediction and testing data for prediction and evaluates using sklearn.metrics modules
+def evaluation(prediction, y_test):
+    accuracyScore = accuracy_score(y_test, prediction)
+    precisionScore = precision_score(y_test, prediction)
+    recallScore = recall_score(y_test, prediction)
+    confusionMatrix = confusion_matrix(y_test, prediction)
+    return accuracyScore, precisionScore, recallScore, confusionMatrix
 
 if __name__ == ("__main__"):
     df = load_data(DATA_SET_PATH)
@@ -43,4 +52,10 @@ if __name__ == ("__main__"):
     print(prediction)
     print("Target")
     print(y_test)
-    
+
+    #calling evaluation function, unpacking and receiving results 
+    accuracyScore, precisionScore, recallScore, confusionMatrix = evaluation(prediction, y_test)
+    print(f"Accuracy Score: {accuracyScore}")
+    print(f"Precision Score: {precisionScore}")
+    print(f"Recall Score: {recallScore}")
+    print(f"Confusion Matrix: {confusionMatrix}")
