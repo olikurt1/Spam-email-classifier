@@ -1,12 +1,69 @@
 # Spam-email-classifier
-The purpose of this repository will be to showcase
 
-## Data
-I will be using a public dataset to train the model. I will then use my own emails as testing data. The main decision for this is my personal dataset would not be large enough to train model. I will be using the enron-spam kaggle dataset to train the model initially. The dataset is split between 71% ham and 29% spam. When splitting the data between training and testing data I will stratify this so that the percentage of ham to spam is the same in both testing and training data. From the dataset, I have dropped the label and email ID label columns. The label column is dropped because there is already a label_num column which sets the row as 1 or 0 depending on if its spam or ham. Ham is 0, spam is 1. This is enough for the dataset as the model can use this value as the target to determine spam or ham. Removing the ID simply cleans up the dataset as it isn't required for context by the model. 
+This repository includes a spam email classifier using TF-IDF to turn emails into numerical features that a model can read and a Multinomial Naive Bayes model as the classification model. It is trained on the Enron-Spam dataset (4993 emails after removing duplcated) from Kaggle and built with scikit-learn. The Naive bayes model was given a testing set of 999 emails and reached an accuracy score of 88.3% against a baseline score of 70.7%. There is a 100% precision score meaning no real emails were flagged as spam and a 60% recall score meaning most spam was caught but not all. This shows that the model is cautious as it never blocks real mail (precision score) but lets some spam through (recall score).
 
-## Libraries
-This project will include usage of the Pandas library. This will set the CSV into a dataframe and allow cleaning and manipulation of data. Scikit-Learn is also being utilised for splitting the data into training and testing splits along with importing the algorithm (Naive Bayes)
+## Results 
 
+| Metric      | Score |
+|-------------|-------|
+| Accuracy    | 88.3% |
+| Baseline    | 70.7% |
+| Precision   | 100%  |
+| Recall      | 60.4% |
 
-## Training
-The data is being split into an 80/20 split of training and testing. Stratification ensures that both splits have 71% ham and 29% spam. To be exact the split is 70.7% and 29.3%. The model has to easily beat 70.7% otherwise it will have only detected ham when there is a definitive amount of spam. 
+### Confusion Matrix 999 test emails:
+
+|             Predicted ham | Predicted spam |
+|---------------------------|----------------|
+| Actual ham:           706 |              0 |
+| Actual spam:          116 |            177 |
+
+The results and confusion matrix shows that every email the model flagged as spam was really spam, so legitimate emails weren't lost. However, 116 of the 293 spam emails were let through. For a spam filter this is better than blocking a real email but recall needs to be improved. An accuracy of 88.3% is misleading in this case because 70.7% of the emails are already ham. This is why I included precision, recall and the confusion matrix alongside it. 
+
+## Data
+
+Dataset: [Kaggle Spam Mail Dataset](https://www.kaggle.com/datasets/venky73/spam-mails-dataset), a subset of the Enron-Spam set, with columns for email text and spam/ham labelling. 
+
+Cleaning: In Data.py, I cleaned the dataset by removing 178 duplicate emails to avoid score inflation. I also checked for missing or blank email text cells. None were found. Finally I dropped the dataset's ID column and the text label column and only kept the text and label_num columns. label_num is used as the target. After cleaning, the balance between spam and ham was 29.3% and 70.7%
+
+## Approach
+
+1. Train/test split: 80/20 split using train_test_split from scikit-learn. The split was stratified on label_num so both sets could keep the ratio of 70.7/29.3. The spit includes a fixed random state which means that results won't vary. 
+2. TF-IDF vectorisation: This converts each email into numbers based on how often each word appears. This gives less weight to words that are common to almost all emails such as "the" and "subject". 
+3. Multinomial Naive Bayes: This model learns how likely each word is to appear in spam vs ham. These probabilites are then combined to classify new emails. I chose this because it is fast and suits word frequency data well. 
+4. Pipeline: Since the TF-IDF and model are combined using scikit-learn Pipeline, the model only ever learns from training data. This prevents testing data being used in training. 
+
+## Project Structure
+
+```
+Spam-email-classifier/
+├── src/
+│   ├── Data.py         # loads and cleans the dataset
+│   └── Train.py        # splits data, trains the pipeline, evaluates it
+├── resources/          # dataset goes here (not included in repo)
+├── requirements.txt
+└── README.md
+```
+
+## How to run
+
+Requires Python 3.12 or newer.
+
+1. Clone repository:
+```
+git clone https://github.com/olikurt1/Spam-email-classifier.git
+cd Spam-email-classifier
+```
+2. Create and activate a virtual environment, then install dependencies:
+```
+python -m venv .venv
+source .venv/bin/activate      # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+```
+3. Download the dataset from kaggle and save it within a 'resources' folder which should be sibling to 'src'
+4. From the project root run: python src/Train.py
+
+## Limitations and next steps
+
+- Low recall (60%): this is the main weakness and I plan to try Logistic Regression against the Naive Bayes baseline. 
+- Evaluate the model on my own inbox to measure false positive on modern emails. Performance on this will most likely be lower since the Enron emails are from the early 2000's.
